@@ -2,8 +2,8 @@
   "$schema": "https://mintlify.com/schema.json",
   "name": "swap.coffee",
   "logo": {
-    "dark": "/logo/swap.svg",
-    "light": "/logo/swap.svg"
+    "dark": "/logo/swap-logo.svg",
+    "light": "/logo/swap-logo.svg"
   },
   "favicon": "/logo/swap.svg",
   "colors": {
