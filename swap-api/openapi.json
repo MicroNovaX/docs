@@ -1,0 +1,3410 @@
+openapi: 3.0.3
+info:
+title: Swap Coffee API
+version: 1.0.0
+servers:
+- url: https://backend.swap.coffee/
+- url: http://localhost:8080/
+tags:
+- name: Entity
+description: Tokens, pools, DEXes, etc.
+- name: Routing
+description: Core functionality of the service. Build routes, get transactions, etc.
+- name: Strategies
+description: Limit orders, DCA, VCA, etc.
+- name: Referral
+description: Everything related to the referral program of swap.coffee.
+- name: Cashback
+description: Cashback programs conducted on swap.coffee.
+- name: Claim
+description: Claiming various rewards available on swap.coffee.
+- name: Contests
+description: Timed contests based on trading volumes for certain token-pairs.
+- name: Staking
+description: Responsible to manage staked funds, stake new tokens.
+- name: Profile
+description: Retrieve information about user profiles.
+- name: Partnership
+description: Various functionality for our partners.
+- name: Statistics
+description: Retrieve information about dex aggregation stats.
+- name: Ton
+description: Retrieve information about TON entities.
+- name: Auth
+description: Auth operations. For internal usage only.
+security:
+- ApiKey: [ ]
+paths:
+/v1/blockchains:
+get:
+tags: [ Entity ]
+summary: Get supported blockchains. Currently only TON is supported.
+operationId: getBlockchains
+responses:
+'200':
+description: list of blockchains
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiBlockchain'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/dexes:
+get:
+tags: [ Entity ]
+summary: Returns list of supported decentralized exchanges supported by the service in the given blockchain
+operationId: getDexes
+parameters:
+- name: blockchain
+in: query
+schema:
+type: string
+example: ton
+responses:
+'200':
+description: list of decentralized exchanges
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiDex'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/dex/{blockchain}/{name}:
+get:
+tags: [ Entity ]
+summary: Returns information about the given decentralized exchange for the given blockchain
+operationId: getDex
+parameters:
+- name: blockchain
+in: path
+required: true
+schema:
+type: string
+example: ton
+- name: name
+in: path
+required: true
+schema:
+type: string
+example: stonfi
+responses:
+'200':
+description: pool
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiDex'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/pool/{blockchain}/{address}:
+get:
+tags: [ Entity ]
+summary: Returns information about the given liquidity pool for the given blockchain
+operationId: getPool
+parameters:
+- name: blockchain
+in: path
+required: true
+schema:
+type: string
+example: ton
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: EQDY6PMeMbQSz7dltNN4RRTIxyuBJX4dQESOy8cWR2tUgBxH
+responses:
+'200':
+description: pool
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiPool'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/tokens:
+get:
+tags: [ Entity ]
+summary: Returns list of tokens supported by the service
+operationId: getTokens
+parameters:
+- name: listed
+in: query
+schema:
+type: boolean
+description: If true, only officially listed tokens are returned
+default: true
+responses:
+'200':
+description: list of tokens
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiToken'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/token/{blockchain}/{address}:
+get:
+tags: [ Entity ]
+summary: Returns information about the given token for the given blockchain
+operationId: getToken
+parameters:
+- name: blockchain
+in: path
+required: true
+schema:
+type: string
+example: ton
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: EQAM2KWDp9lN0YvxvfSbI0ryjBXwM70rakpNIHbuETatRWA1
+responses:
+'200':
+description: token
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiToken'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/token/{blockchain}/by-symbol/{symbol}:
+get:
+tags: [ Entity ]
+summary: Returns information about the given token by its symbol for the given blockchain
+operationId: getTokensBySymbol
+parameters:
+- name: blockchain
+in: path
+required: true
+schema:
+type: string
+example: ton
+- name: symbol
+in: path
+required: true
+schema:
+type: string
+example: ARBUZ
+responses:
+'200':
+description: tokens
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiToken'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/route:
+post:
+tags: [ Routing ]
+summary: Returns the best route for the given trade pair
+operationId: buildRoute
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiRouteRequest'
+responses:
+'200':
+description: resulting route
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiRoute'
+'default':
+$ref: '#/components/responses/ApiError'
+/v2/route/transactions:
+post:
+tags: [ Routing ]
+summary: Returns pre-built transactions for the given route. It is assumed that transactions will be signed and sent by the sender via wallet
+operationId: buildTransactionsV2
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTransactionsRequest'
+responses:
+'200':
+description: transactions for the route
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTransactionsResponse'
+'default':
+$ref: '#/components/responses/ApiError'
+/v2/unstake/ton/transaction:
+post:
+tags: [ Routing ]
+summary: Returns pre-built transaction for the given unstake request. It is assumed that transaction will be signed and sent by the sender via wallet
+operationId: buildTonUnstakeTransaction
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTonStakingTransactionRequest'
+responses:
+'200':
+description: transaction for unstake
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTransactionBoc'
+'default':
+$ref: '#/components/responses/ApiError'
+/v2/stake/ton/transaction:
+post:
+tags: [ Routing ]
+summary: Returns pre-built transaction for the given stake request. It is assumed that transaction will be signed and sent by the sender via wallet
+operationId: buildTonStakeTransaction
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTonStakingTransactionRequest'
+responses:
+'200':
+description: transaction for stake
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTransactionBoc'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/route/result:
+get:
+tags: [ Routing ]
+summary: Get route transactions execution result
+operationId: getTransactionsResult
+deprecated: true
+parameters:
+- name: query_id
+description: Actually it's route_id, but saved old naming for back-compatibility
+in: query
+required: true
+schema:
+type: integer
+format: int64
+responses:
+'200':
+description: transactions for the route
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiTransactionResult'
+'default':
+$ref: '#/components/responses/ApiError'
+/v2/route/result:
+get:
+tags: [ Routing ]
+summary: Get route transactions execution result
+operationId: getRouteResult
+parameters:
+- name: route_id
+in: query
+required: true
+schema:
+type: integer
+format: int32
+responses:
+'200':
+description: Result of the route transactions execution
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiRouteResult'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/ton/wallet/{address}/version:
+get:
+tags: [ Ton ]
+summary: Returns wallet version and revision
+operationId: getWalletVersion
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+responses:
+'200':
+description: Wallet version and revision; if not a wallet, zeroes are being returned
+content:
+application/json:
+schema:
+type: object
+required:
+- version
+- revision
+properties:
+version:
+type: integer
+revision:
+type: integer
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/ton/wallet/{address}/balance:
+get:
+tags: [ Ton ]
+summary: Get wallet balance in nanotons (1e-9 TON)
+operationId: getWalletBalance
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+responses:
+'200':
+description: Wallet balance in nanotons
+content:
+application/json:
+schema:
+type: string
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/profile/{address}/transactions:
+get:
+tags: [ Profile ]
+summary: Get historical account transactions on swap.coffee
+operationId: getHistoricalTransactions
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address
+schema:
+type: string
+- name: token
+in: query
+description: If set, only transactions related to this token will be returned
+schema:
+type: string
+example: native
+- name: token2
+in: query
+description: If set, only transactions related to this token pair will be returned
+schema:
+type: string
+example: EQCl0S4xvoeGeFGijTzicSA8j6GiiugmJW5zxQbZTUntre-1
+- name: size
+in: query
+schema:
+type: integer
+minimum: 1
+maximum: 100
+default: 100
+- name: page
+in: query
+schema:
+type: integer
+format: int32
+minimum: 1
+default: 1
+responses:
+'200':
+description: Historical account transactions
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiHistoricalTransaction'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/profile/{address}/proof:
+post:
+tags: [ Profile ]
+summary: Validate TON proof for given account address
+operationId: validateProof
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiProofValidationRequest'
+responses:
+'200':
+description: ok
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/profile/{address}/settings:
+get:
+tags: [ Profile ]
+summary: Get account settings
+operationId: getAccountSettings
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+schema:
+type: string
+responses:
+'200':
+description: Account settings
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiJson'
+'default':
+$ref: '#/components/responses/ApiError'
+post:
+tags: [ Profile ]
+summary: Update account settings
+operationId: updateAccountSettings
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+schema:
+type: string
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiJson'
+responses:
+'200':
+description: ok
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/auth:
+get:
+tags: [ Auth ]
+summary: List existing auth tokens
+operationId: getAuthTokens
+responses:
+'200':
+description: tokens
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiAuthToken'
+'default':
+$ref: '#/components/responses/ApiError'
+post:
+tags: [ Auth ]
+summary: Create new auth token
+operationId: createAuthToken
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiCreateAuthTokenRequest'
+responses:
+'200':
+description: token
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiAuthToken'
+'default':
+$ref: '#/components/responses/ApiError'
+patch:
+tags: [ Auth ]
+summary: Edit existing auth token
+operationId: editAuthToken
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiEditAuthTokenRequest'
+responses:
+'200':
+description: token
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiAuthToken'
+'default':
+$ref: '#/components/responses/ApiError'
+delete:
+tags: [ Auth ]
+summary: Delete existing auth token
+operationId: deleteAuthToken
+parameters:
+- name: key
+in: query
+required: true
+schema:
+type: string
+responses:
+'200':
+description: ok
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/referral/{address}:
+get:
+tags: [ Referral ]
+summary: Get account's referral info
+operationId: getReferralInfo
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address
+schema:
+type: string
+responses:
+'200':
+description: Account's referral info
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiReferralAccountInfo'
+'default':
+$ref: '#/components/responses/ApiError'
+post:
+tags: [ Referral ]
+summary: Bind new referral
+operationId: bindReferral
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: referral
+in: query
+required: true
+schema:
+type: string
+example: user_UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address
+schema:
+type: string
+responses:
+'200':
+description: ok
+'default':
+$ref: '#/components/responses/ApiError'
+delete:
+tags: [ Referral ]
+summary: Unbind existing referral. For internal usage only.
+operationId: unbindReferral
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+responses:
+'200':
+description: ok
+'default':
+$ref: '#/components/responses/ApiError'
+patch:
+tags: [ Referral ]
+summary: Update referral's info. For internal usage only.
+operationId: updateReferral
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiReferralAccountInfoUpdate'
+responses:
+'200':
+description: ok
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/referral/{address}/list:
+get:
+tags: [ Referral ]
+summary: Get account's list of referrals
+operationId: getReferralList
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address
+schema:
+type: string
+- name: size
+in: query
+schema:
+type: integer
+format: int32
+minimum: 1
+maximum: 100
+default: 10
+- name: page
+in: query
+schema:
+type: integer
+format: int32
+minimum: 1
+default: 1
+responses:
+'200':
+description: Account's list of referrals
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiReferralInfo'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/claim/{address}:
+get:
+tags: [ Claim ]
+summary: Get account's claiming stats
+operationId: getClaimingStats
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address
+schema:
+type: string
+- name: type
+in: query
+required: true
+schema:
+$ref: '#/components/schemas/ApiClaimingType'
+- name: size
+in: query
+schema:
+type: integer
+format: int32
+minimum: 1
+maximum: 100
+default: 100
+- name: page
+in: query
+schema:
+type: integer
+format: int32
+minimum: 1
+default: 1
+responses:
+'200':
+description: Account's claiming stats
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiClaimingStats'
+'default':
+$ref: '#/components/responses/ApiError'
+post:
+tags: [ Claim ]
+summary: Claim tokens
+operationId: claimTokens
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address
+schema:
+type: string
+- name: type
+in: query
+required: true
+schema:
+$ref: '#/components/schemas/ApiClaimingType'
+requestBody:
+required: true
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiTokenClaimRequest'
+responses:
+'200':
+description: User's referral info
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiTokenClaimResponse'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/claim/{address}/state:
+get:
+tags: [ Claim ]
+summary: Get state of account claimings
+operationId: getAccountClaimingState
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address
+schema:
+type: string
+- name: type
+in: query
+required: true
+schema:
+$ref: '#/components/schemas/ApiClaimingType'
+- name: size
+in: query
+schema:
+type: integer
+format: int32
+minimum: 1
+maximum: 100
+default: 10
+- name: page
+in: query
+schema:
+type: integer
+format: int32
+minimum: 1
+default: 1
+responses:
+'200':
+description: State of account's claimings
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiClaimStateResponse'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/claim/result:
+get:
+tags: [ Claim ]
+summary: Get claiming transaction execution result
+operationId: getClaimingTransactionResult
+parameters:
+- name: query_id
+description: Public query ids to track withdraw request
+in: query
+required: true
+schema:
+type: array
+items:
+type: integer
+format: int64
+responses:
+'200':
+description: Claiming transaction status
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTransactionStatus'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/cashback/:
+get:
+tags: [ Cashback ]
+summary: Get cashbacks info
+operationId: getCashbackInfos
+parameters:
+- name: distributor
+in: query
+required: false
+description: Address, from which, token will be distributed to participants
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: token
+in: query
+required: false
+description: Cashback token
+schema:
+type: string
+example: EQCZ_pV6EJNSr6XpvPaa-IVkT6ImqkiPftRMOICJP1B_75wZ
+- name: active
+in: query
+required: false
+description: Filter out active promotions only
+schema:
+type: boolean
+- name: size
+in: query
+schema:
+type: integer
+format: int32
+minimum: 1
+maximum: 100
+default: 10
+- name: page
+in: query
+schema:
+type: integer
+format: int32
+minimum: 1
+default: 1
+responses:
+'200':
+description: Account's cashback info
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiCashbackInfoResponse'
+'default':
+$ref: '#/components/responses/ApiError'
+post:
+tags: [ Cashback ]
+summary: Create new cashback distribution. For internal usage only
+operationId: createCashback
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiCashbackCreateRequest'
+responses:
+'200':
+description: Created cashback
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiCashbackInfo'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/cashback/{id}:
+get:
+tags: [ Cashback ]
+summary: Get cashback info
+operationId: getCashbackInfo
+parameters:
+- name: id
+in: path
+required: true
+description: Cashback id
+schema:
+type: integer
+format: int64
+responses:
+'200':
+description: Cashback info
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiCashbackInfo'
+'default':
+$ref: '#/components/responses/ApiError'
+patch:
+tags: [ Cashback ]
+summary: Update cashback information. For internal usage only
+operationId: updateCashback
+parameters:
+- name: id
+in: path
+required: true
+description: Cashback id
+schema:
+type: integer
+format: int64
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiCashbackUpdateRequest'
+responses:
+'200':
+description: Created cashback
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiCashbackInfo'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/cashback/user/{address}:
+get:
+tags: [ Cashback ]
+summary: Get cashback total info for user
+operationId: getUserCashbackInfoTotal
+parameters:
+- name: address
+in: path
+required: true
+description: User address
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address
+schema:
+type: string
+responses:
+'200':
+description: Account's earned stats
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiUserCashbackInfoTotal'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/cashback/user/{address}/list:
+get:
+tags: [ Cashback ]
+summary: Get cashback promos rewards for user
+operationId: getUserCashbackInfo
+parameters:
+- name: address
+in: path
+required: true
+description: User address
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address
+schema:
+type: string
+- name: size
+in: query
+schema:
+type: integer
+format: int32
+minimum: 1
+maximum: 100
+default: 10
+- name: page
+in: query
+schema:
+type: integer
+format: int32
+minimum: 1
+default: 1
+responses:
+'200':
+description: Account's earned stats
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiUserCashbackInfo'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/contests:
+get:
+tags: [ Contests ]
+description: Get contests
+operationId: getContests
+parameters:
+- name: active
+in: query
+schema:
+type: boolean
+default: true
+responses:
+'200':
+description: List of contests
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiContestInfoWithID'
+'default':
+$ref: '#/components/responses/ApiError'
+post:
+tags: [ Contests ]
+description: Create new contest. For internal usage only
+operationId: createContest
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiContestInfo'
+responses:
+'200':
+description: Created contest information with id
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiContestInfoWithID'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/contests/{id}:
+get:
+tags: [ Contests ]
+description: Get contest
+operationId: getContest
+parameters:
+- name: id
+in: path
+required: true
+schema:
+type: integer
+format: int32
+responses:
+'200':
+description: Contest information
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiContestInfoWithID'
+'default':
+$ref: '#/components/responses/ApiError'
+patch:
+tags: [ Contests ]
+description: Update existing contest. For internal usage only
+operationId: updateContest
+parameters:
+- name: id
+in: path
+required: true
+schema:
+type: integer
+format: int32
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiContestInfo'
+responses:
+'200':
+description: Updated contest information with id
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiContestInfoWithID'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/contests/{id}/user/{address}:
+get:
+tags: [ Contests ]
+description: Get user stats for contest
+operationId: getContestUserStats
+parameters:
+- name: id
+in: path
+required: true
+schema:
+type: integer
+format: int32
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+schema:
+type: string
+responses:
+'200':
+description: User stats for given contest
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiContestUserStats'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/contests/{id}/top:
+get:
+tags: [ Contests ]
+description: Get top users' stats for contest
+operationId: getContestTopUsersStats
+parameters:
+- name: id
+in: path
+required: true
+schema:
+type: integer
+format: int32
+responses:
+'200':
+description: User stats for given contest
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiContestTopStats'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/strategies/{address}/wallet:
+get:
+tags: [ Strategies ]
+summary: Check whether strategies wallet exists for given account address.
+operationId: doesStrategyWalletExist
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x_verify
+in: header
+required: true
+schema:
+type: string
+responses:
+'200':
+description: Wallet address
+content:
+application/json:
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+'404':
+description: Wallet does not exist
+'default':
+$ref: '#/components/responses/ApiError'
+post:
+tags: [ Strategies ]
+summary: Get pre-built transaction for strategies wallet creation.
+operationId: getStrategyWalletCreationTransaction
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x_verify
+in: header
+required: true
+schema:
+type: string
+responses:
+'200':
+description: Transaction to be sent
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTransactionBoc'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/strategies/{address}/orders:
+get:
+tags: [ Strategies ]
+summary: Get strategy orders
+operationId: getStrategyOrders
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x_verify
+in: header
+required: true
+schema:
+type: string
+- name: type
+in: query
+schema:
+$ref: '#/components/schemas/ApiStrategyOrderType'
+- name: include_finished
+in: query
+description: By default, only active and pending cancellation orders are being returned
+schema:
+type: boolean
+default: false
+- name: size
+in: query
+description: Maximum amount of results returned
+schema:
+type: integer
+format: int32
+minimum: 1
+maximum: 100
+default: 100
+- name: before_id
+in: query
+description: Return only those orders, which id is lower than the given one
+schema:
+type: integer
+format: int32
+responses:
+'200':
+description: Account's strategy orders
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiStrategyOrder'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/strategies/{address}/order:
+get:
+tags: [ Strategies ]
+summary: Get strategy order
+operationId: getStrategyOrder
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x_verify
+in: header
+required: true
+schema:
+type: string
+- name: id
+in: query
+required: true
+schema:
+type: integer
+format: int32
+responses:
+'200':
+description: Account's strategy order
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiStrategyOrder'
+'default':
+$ref: '#/components/responses/ApiError'
+post:
+tags: [ Strategies ]
+summary: Get pre-built transaction for strategy order creation
+operationId: getStrategyOrderCreationTransaction
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x_verify
+in: header
+required: true
+schema:
+type: string
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiStrategyOrderCreationRequest'
+responses:
+'200':
+description: Transaction to be sent
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTransactionBoc'
+'default':
+$ref: '#/components/responses/ApiError'
+delete:
+tags: [ Strategies ]
+summary: Get pre-built transaction for strategy order cancellation
+operationId: getStrategyOrderCancellationTransaction
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x_verify
+in: header
+required: true
+schema:
+type: string
+- name: id
+in: query
+required: true
+schema:
+type: integer
+format: int32
+responses:
+'200':
+description: Transaction to be sent
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTransactionBoc'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/partnership/{address}/transactions:
+get:
+tags: [ Partnership ]
+summary: Get raw transaction records with specified partner's referral address. Requires associated x-api-key.
+operationId: getRawTransactionRecords
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: page
+in: query
+schema:
+type: integer
+format: int32
+minimum: 1
+maximum: 100
+default: 1
+responses:
+'200':
+description: Raw transaction records
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiRawTransactionRecord'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/statistics/generic:
+get:
+tags: [ Statistics ]
+summary: Get generic statistic of dex aggregation.
+operationId: getGenericStats
+parameters:
+- name: from
+in: query
+required: true
+schema:
+type: integer
+format: int64
+minimum: 1
+description: Unix timestamp in seconds
+- name: to
+in: query
+required: true
+schema:
+type: integer
+format: int64
+description: Unix timestamp in seconds
+responses:
+'200':
+description: Generic statistics
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTxStats'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/staking/:
+get:
+tags: [ Staking ]
+summary: Get aggregated information about staking
+operationId: getStakingGlobalInfo
+responses:
+'200':
+description: Aggregated staked info
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiStakingGlobalInfo'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/staking/result:
+get:
+tags: [ Staking ]
+summary: Get staking transaction execution result
+operationId: getStakingTransactionResult
+parameters:
+- name: query_id
+description: Public query id to track staking process
+in: query
+required: true
+schema:
+type: integer
+format: int64
+responses:
+'200':
+description: Staking transaction status
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTransactionStatus'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/staking/{address}:
+get:
+tags: [ Staking ]
+summary: Get aggregated information about staking for users
+operationId: getStakingUserInfo
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address.
+schema:
+type: string
+responses:
+'200':
+description: Aggregated staked info
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiStakingUserInfo'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/staking/{address}/balances:
+get:
+tags: [ Staking ]
+summary: Get users balances of tokens to stake
+operationId: getStakingTokenBalances
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address.
+schema:
+type: string
+responses:
+'200':
+description: User's balances
+content:
+application/json:
+schema:
+type: array
+items:
+$ref: '#/components/schemas/ApiUserStakeTokenInfo'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/staking/positions/{address}:
+post:
+tags: [ Staking ]
+summary: Build transaction to create new staking position
+operationId: createStakingPosition
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address
+schema:
+type: string
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiCreateStakeRequest'
+responses:
+'200':
+description: Boc to open position with queryId to observe
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTokenClaimResponse'
+'default':
+$ref: '#/components/responses/ApiError'
+/v1/staking/positions/{address}/{id}:
+post:
+tags: [ Staking ]
+summary: Build transaction to extend existing position
+operationId: extendStakingPosition
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: id
+in: path
+required: true
+schema:
+type: integer
+format: int64
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address
+schema:
+type: string
+requestBody:
+required: true
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiExtendStakeRequest'
+responses:
+'200':
+description: Boc to extend position with queryId to observe
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTokenClaimResponse'
+'default':
+$ref: '#/components/responses/ApiError'
+delete:
+tags: [ Staking ]
+summary: Build transaction to close position and withdraw all money
+operationId: closeStakingPosition
+parameters:
+- name: address
+in: path
+required: true
+schema:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+- name: id
+in: path
+required: true
+schema:
+type: integer
+format: int64
+- name: x-verify
+in: header
+required: true
+description: TON proof for the given address
+schema:
+type: string
+responses:
+'200':
+description: Boc to close with queryId to observe
+content:
+application/json:
+schema:
+$ref: '#/components/schemas/ApiTokenClaimResponse'
+'default':
+$ref: '#/components/responses/ApiError'
+components:
+securitySchemes:
+ApiKey:
+type: apiKey
+name: X-Api-Key
+in: header
+responses:
+ApiError:
+description: Some error during request processing
+content:
+application/json:
+schema:
+type: object
+required:
+- error
+properties:
+error:
+type: string
+schemas:
+ApiError:
+type: object
+required:
+- error
+properties:
+error:
+type: string
+example: error description
+ApiBlockchain:
+type: object
+required:
+- name
+properties:
+name:
+type: string
+example: ton
+ApiTokenAddress:
+type: object
+required:
+- blockchain
+- address
+properties:
+blockchain:
+type: string
+example: ton
+address:
+type: string
+example: native
+ApiTokenMetadata:
+type: object
+required:
+- name
+- symbol
+- decimals
+- listed
+properties:
+name:
+type: string
+example: ARBUZ
+symbol:
+type: string
+example: ARBUZ
+decimals:
+type: integer
+format: int32
+image_url:
+type: string
+listed:
+type: boolean
+ApiToken:
+type: object
+required:
+- address
+- metadata
+properties:
+address:
+$ref: '#/components/schemas/ApiTokenAddress'
+metadata:
+$ref: '#/components/schemas/ApiTokenMetadata'
+ApiDex:
+type: object
+required:
+- blockchain
+- name
+properties:
+blockchain:
+type: string
+example: ton
+name:
+type: string
+example: stonfi
+ApiAmmType:
+type: string
+enum:
+- volatile
+- stable
+ApiPoolFees:
+type: object
+required:
+- average_gas
+properties:
+average_gas:
+type: number
+format: double
+divider:
+type: integer
+format: int32
+input:
+type: integer
+format: int32
+output:
+type: integer
+format: int32
+first_token:
+type: integer
+format: int32
+second_token:
+type: integer
+format: int32
+ApiPoolReserves:
+type: array
+items:
+type: number
+format: double
+ApiTokenRestrictions:
+type: object
+properties:
+min_swap_amount:
+type: number
+format: double
+max_swap_amount:
+type: number
+format: double
+ApiPoolType:
+type: string
+enum:
+- public
+- private
+- slumbering
+- invalid
+ApiPool:
+type: object
+required:
+- dex
+- address
+- type
+- amm_type
+- tokens
+- reserves
+- fees
+properties:
+dex:
+type: string
+example: stonfi
+address:
+type: string
+type:
+$ref: '#/components/schemas/ApiPoolType'
+amm_type:
+$ref: '#/components/schemas/ApiAmmType'
+tokens:
+type: array
+items:
+$ref: '#/components/schemas/ApiToken'
+reserves:
+$ref: '#/components/schemas/ApiPoolReserves'
+extra_decimals:
+type: array
+items:
+type: integer
+format: int32
+restrictions:
+type: array
+items:
+$ref: '#/components/schemas/ApiTokenRestrictions'
+fees:
+$ref: '#/components/schemas/ApiPoolFees'
+ApiSwapResult:
+type: string
+description: Result of the swap
+enum:
+- fully_fulfilled
+- partially_fulfilled
+- unavailable
+ApiSwap:
+type: object
+required:
+- result
+- input_amount
+- output_amount
+- before_reserves
+- after_reserves
+properties:
+result:
+$ref: '#/components/schemas/ApiSwapResult'
+input_amount:
+type: number
+format: double
+output_amount:
+type: number
+format: double
+before_reserves:
+$ref: '#/components/schemas/ApiPoolReserves'
+after_reserves:
+$ref: '#/components/schemas/ApiPoolReserves'
+reason:
+type: string
+left_amount:
+type: number
+format: double
+ApiRecommendedGas:
+type: object
+required:
+- blockchain
+- amount
+properties:
+blockchain:
+type: string
+example: ton
+amount:
+type: number
+format: double
+ApiRoutingStep:
+type: object
+required:
+- blockchain
+- dex
+- pool_address
+- input_token
+- output_token
+- swap
+- recommended_gas
+- average_gas
+properties:
+blockchain:
+type: string
+example: ton
+dex:
+type: string
+example: stonfi
+pool_address:
+type: string
+input_token:
+$ref: '#/components/schemas/ApiToken'
+output_token:
+$ref: '#/components/schemas/ApiToken'
+swap:
+$ref: '#/components/schemas/ApiSwap'
+recommended_gas:
+type: number
+format: double
+average_gas:
+type: number
+format: double
+next:
+type: array
+items:
+$ref: '#/components/schemas/ApiRoutingStep'
+ApiSwapTransaction:
+type: object
+required:
+- address
+- value
+- cell
+- send_mode
+- query_id
+properties:
+address:
+type: string
+example: EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez
+value:
+type: string
+format: int128
+description: Amount of nanotons to be sent. Can be passed to TonConnect transaction.
+cell:
+type: string
+description: Base64-encoded cell. Treated as a payload field in TonConnect transaction.
+format: base64
+send_mode:
+type: integer
+format: int32
+description: 'Internal message send mode. More: https://docs.ton.org/develop/smart-contracts/messages#message-modes'
+query_id:
+type: integer
+format: int64
+description: Unique identifier of the query used for tracking swap.coffee transactions among others
+ApiTransactionBoc:
+type: object
+required:
+- payload_cell
+- address
+- value
+properties:
+payload_cell:
+type: string
+format: base64
+description: Base64-encoded cell. Treated as a payload field in TonConnect transaction.
+address:
+type: string
+example: EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez
+value:
+type: string
+format: int128
+description: Amount of nanotons to be sent. Can be passed to TonConnect transaction.
+state_init:
+type: string
+format: base64
+description: Base64-encoded cell. Treated as a stateInit field in TonConnect transaction.
+ApiTransactionsResponse:
+type: object
+required:
+- route_id
+- transactions
+properties:
+route_id:
+type: integer
+description: Unique identifier of the route used for tracking.
+transactions:
+type: array
+items:
+$ref: '#/components/schemas/ApiSwapTransaction'
+ApiRoute:
+type: object
+required:
+- input_token
+- output_token
+- input_amount
+- output_amount
+- input_usd
+- output_usd
+- recommended_gas
+- price_impact
+- paths
+properties:
+input_token:
+$ref: '#/components/schemas/ApiToken'
+output_token:
+$ref: '#/components/schemas/ApiToken'
+input_amount:
+type: number
+format: double
+output_amount:
+type: number
+format: double
+input_usd:
+type: number
+format: double
+output_usd:
+type: number
+format: double
+savings:
+type: number
+format: double
+left_amount:
+type: number
+format: double
+recommended_gas:
+type: number
+format: double
+price_impact:
+type: number
+format: double
+estimated_cashback_usd:
+type: number
+format: double
+paths:
+type: array
+items:
+$ref: '#/components/schemas/ApiRoutingStep'
+ApiPoolSelector:
+type: object
+description: Configures the DEX pools that can appear in the generated route. By setting blockchains = ["ton"] inside it, you can remove the dexes field; max_volatility allows you to exclude pools whose volatility has been above a certain percentage in the last 15 minutes. This makes sense when you allow 2-3 intermediate tokens or a large number of splits to smooth out potential issues.
+properties:
+blockchains:
+description: 'If specified, only pools from given blockchains will be used for routing'
+type: array
+items:
+type: string
+example: ton
+dexes:
+description: 'If specified, only pools from given dexes will be used for routing'
+type: array
+items:
+type: string
+example: dedust
+max_volatility:
+description: 'If specified, only pools with volatility lower than given value will be used for routing'
+type: number
+format: double
+minimum: 0.0
+ApiRouteRequestAdditionalData:
+type: object
+properties:
+sender_address:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+referral_name:
+type: string
+example: tonkeeper
+ApiRouteRequest:
+type: object
+required:
+- input_token
+- output_token
+properties:
+input_token:
+$ref: '#/components/schemas/ApiTokenAddress'
+output_token:
+$ref: '#/components/schemas/ApiTokenAddress'
+input_amount:
+type: number
+format: double
+description: Input amount in tokens (not nano!) to be swapped
+minimum: 0.0
+exclusiveMinimum: true
+output_amount:
+type: number
+description: If specified, the route will be built to get the specified output amount. If not specified, the route will be built to get the maximum output amount for the given input amount.
+format: double
+minimum: 0.0
+exclusiveMinimum: true
+max_splits:
+type: integer
+format: int32
+description: Defines the maximum number of independent paths (i.e., transactions) the route can split into. For v4 wallets, you can omit this or set it to 4; for v5 wallets, you can set it to 20 (this is our internal upper limit, and we may reduce it to 10).
+minimum: 1
+maximum: 20
+default: 4
+max_length:
+type: integer
+format: int32
+description: Defines the maximum length of each path in tokens. It accepts values from [2; 5]. If it's 2, only direct swaps A -> B without multihops are possible. If it's 3, there can be a maximum of 1 intermediate token, i.e., A -> X -> B. If it's 4/5, there can be 2/3 intermediate tokens. A value of 2 deprives you of more profitable exchanges by finding market inefficiencies and does not allow you to exchange tokens without a direct pair (since there can be no intermediate tokens). The higher the value, the more profitable routes can be built, but the higher the likelihood that the user ends up with an intermediate token (since our blockchain is asynchronous, and some swap in the middle of the route may fail due to slippage).
+minimum: 2
+maximum: 5
+default: 3
+pool_selector:
+$ref: '#/components/schemas/ApiPoolSelector'
+additional_data:
+$ref: '#/components/schemas/ApiRouteRequestAdditionalData'
+ApiTonStakingTransactionRequest:
+type: object
+required:
+- sender_address
+- amount
+- token_address
+properties:
+referral_name:
+type: string
+example: "tonkeeper"
+sender_address:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+amount:
+type: number
+format: double
+example: 0.05
+token_address:
+type: string
+example: EQDY6PMeMbQSz7dltNN4RRTIxyuBJX4dQESOy8cWR2tUgBxH
+ApiTransactionsRequest:
+type: object
+required:
+- sender_address
+- slippage
+- paths
+properties:
+sender_address:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+slippage:
+type: number
+format: double
+description: If the slippage is exceeded, the transaction will not be executed and intermediate tokens will be returned to the sender.
+minimum: 0
+maximum: 1
+example: 0.05
+referral_name:
+type: string
+example: "tonkeeper"
+paths:
+type: array
+items:
+$ref: '#/components/schemas/ApiRoutingStep'
+ApiQuantifiedToken:
+type: object
+required:
+- token_blockchain
+- token_address
+- amount
+properties:
+token_blockchain:
+type: string
+example: ton
+token_address:
+type: string
+amount:
+type: number
+format: double
+ApiTransactionStepStatus:
+type: string
+enum:
+- pending
+- cancelled
+- succeeded
+- failed
+- timed_out
+ApiTransactionStepResult:
+type: object
+required:
+- status
+properties:
+status:
+$ref: '#/components/schemas/ApiTransactionStepStatus'
+input:
+$ref: '#/components/schemas/ApiQuantifiedToken'
+output:
+$ref: '#/components/schemas/ApiQuantifiedToken'
+ApiTransactionStatus:
+type: string
+enum:
+- pending
+- partially_complete
+- succeeded
+- failed
+- timed_out
+ApiTransactionResult:
+type: object
+required:
+- status
+- steps
+properties:
+status:
+$ref: '#/components/schemas/ApiTransactionStatus'
+steps:
+type: array
+items:
+$ref: '#/components/schemas/ApiTransactionStepResult'
+input:
+$ref: '#/components/schemas/ApiQuantifiedToken'
+output:
+$ref: '#/components/schemas/ApiQuantifiedToken'
+ApiTokenWithAmount:
+type: object
+required:
+- token
+- amount
+properties:
+token:
+$ref: '#/components/schemas/ApiToken'
+amount:
+type: number
+ApiSplitStepResult:
+type: object
+required:
+- status
+properties:
+status:
+$ref: '#/components/schemas/ApiTransactionStepStatus'
+input:
+$ref: '#/components/schemas/ApiTokenWithAmount'
+output:
+$ref: '#/components/schemas/ApiTokenWithAmount'
+ApiSplitResult:
+type: object
+required:
+- status
+- steps
+- paid
+- gas_sent
+properties:
+status:
+$ref: '#/components/schemas/ApiTransactionStatus'
+steps:
+type: array
+items:
+$ref: '#/components/schemas/ApiSplitStepResult'
+input:
+$ref: '#/components/schemas/ApiTokenWithAmount'
+output:
+$ref: '#/components/schemas/ApiTokenWithAmount'
+paid:
+type: boolean
+description: Whether funds were paid from the pools to their receiver
+gas_sent:
+type: number
+description: Amount of nanotons, dedicated to be spent on gas
+gas_received:
+type: number
+description: Amount of nanotons, dedicated to be spent on gas, that have been returned. Present only when paid is true
+ApiRouteResult:
+type: object
+required:
+- splits
+- terminal
+properties:
+splits:
+type: array
+items:
+$ref: '#/components/schemas/ApiSplitResult'
+terminal:
+type: boolean
+description: Whether this is the final view of the route result (i.e. it won't change anymore) and therefore it will be invalidated from our cache soon
+ApiAuthTokenOption:
+type: string
+enum:
+- administrator
+- moderator
+- allow_cycles
+ApiCreateAuthTokenRequest:
+type: object
+required:
+- name
+properties:
+name:
+type: string
+minLength: 1
+maxLength: 32
+hourly_limit:
+type: integer
+options:
+type: array
+items:
+$ref: '#/components/schemas/ApiAuthTokenOption'
+ApiEditAuthTokenRequest:
+type: object
+required:
+- token
+properties:
+token:
+type: string
+name:
+type: string
+minLength: 1
+maxLength: 32
+hourly_limit:
+type: integer
+options:
+type: array
+items:
+$ref: '#/components/schemas/ApiAuthTokenOption'
+ApiAuthToken:
+type: object
+required:
+- token
+- name
+properties:
+token:
+type: string
+name:
+type: string
+hourly_limit:
+type: integer
+options:
+type: array
+items:
+$ref: '#/components/schemas/ApiAuthTokenOption'
+ApiHistoricalTransaction:
+type: object
+required:
+- route_id
+- unix_time
+- logical_time
+- from
+- to
+- dex
+properties:
+route_id:
+type: integer
+unix_time:
+type: integer
+format: int64
+description: When transaction happened in blockchain - unix seconds
+logical_time:
+type: integer
+format: int64
+description: When transaction happened in blockchain - on-chain logical time
+from:
+$ref: '#/components/schemas/ApiQuantifiedToken'
+to:
+$ref: '#/components/schemas/ApiQuantifiedToken'
+dex:
+type: string
+example: stonfi
+ApiReferralAccountReward:
+type: object
+required:
+- volume
+- fees
+properties:
+volume:
+type: number
+format: double
+fees:
+type: number
+format: double
+ApiReferralAccountRewards:
+type: object
+required:
+- monthly
+- total
+properties:
+monthly:
+$ref: '#/components/schemas/ApiReferralAccountReward'
+total:
+$ref: '#/components/schemas/ApiReferralAccountReward'
+ApiReferralAccountInfo:
+type: object
+required:
+- link
+- level
+- fees_percentage
+- referrals_count
+- transactions_count
+- rewards
+properties:
+link:
+type: string
+level:
+type: integer
+fees_percentage:
+type: number
+format: double
+referrals_count:
+type: integer
+transactions_count:
+type: integer
+description: Number of transactions sent by referral users
+rewards:
+$ref: '#/components/schemas/ApiReferralAccountRewards'
+ApiReferralAccountInfoUpdate:
+type: object
+required:
+- fees_percentage
+properties:
+fees_percentage:
+type: number
+format: double
+ApiReferralInfo:
+type: object
+required:
+- address
+- transactions_count
+- rewards
+properties:
+address:
+type: string
+transactions_count:
+type: integer
+rewards:
+$ref: '#/components/schemas/ApiReferralAccountReward'
+ApiClaimingType:
+type: string
+enum:
+- all
+- referral
+- cashback
+- staking
+- rewards_stonfi
+ApiClaimingTypeStats:
+type: object
+required:
+- type
+- available_usd
+properties:
+type:
+$ref: '#/components/schemas/ApiClaimingType'
+available_usd:
+type: number
+format: double
+ApiClaimingTokenStats:
+type: object
+required:
+- token
+- wallet
+- type
+- claimed
+- locked
+- available
+- available_usd
+properties:
+token:
+$ref: '#/components/schemas/ApiToken'
+wallet:
+type: string
+description: Wallet's address where token resides
+type:
+$ref: '#/components/schemas/ApiClaimingType'
+claimed:
+type: string
+format: int128
+locked:
+type: string
+format: int128
+available:
+type: string
+format: int128
+available_usd:
+type: number
+format: double
+ApiClaimingStats:
+type: object
+required:
+- aggregated
+- detailed
+properties:
+aggregated:
+type: array
+items:
+$ref: '#/components/schemas/ApiClaimingTypeStats'
+detailed:
+type: array
+items:
+$ref: '#/components/schemas/ApiClaimingTokenStats'
+ApiTokenClaimRequest:
+type: object
+required:
+- token_address
+- amount
+properties:
+amount:
+type: number
+token_address:
+type: string
+wallet_address:
+type: string
+ApiTokenClaimResponse:
+type: object
+required:
+- query_id
+- message
+properties:
+query_id:
+type: integer
+format: int64
+message:
+$ref: '#/components/schemas/ApiTransactionBoc'
+ApiWithdrawalType:
+type: string
+enum:
+- repay
+- refund
+ApiWithdrawalStatus:
+type: string
+enum:
+- unhandled
+- processing
+- processed
+ApiWithdrawal:
+type: object
+required:
+- type
+- status
+properties:
+type:
+$ref: '#/components/schemas/ApiWithdrawalType'
+status:
+$ref: '#/components/schemas/ApiWithdrawalStatus'
+ApiClaimState:
+type: object
+required:
+- type
+- query_id
+- unix_time
+- logical_time
+- transaction_hash
+- token_address
+- wallet_address
+- amount
+- withdrawal
+properties:
+type:
+$ref: '#/components/schemas/ApiClaimingType'
+query_id:
+type: integer
+format: int64
+unix_time:
+type: integer
+format: int64
+description: When transaction happened in blockchain - unix seconds
+logical_time:
+type: integer
+format: int64
+description: When transaction happened in blockchain - on-chain logical time
+transaction_hash:
+type: string
+token_address:
+type: string
+wallet_address:
+type: string
+amount:
+type: number
+withdrawal:
+$ref: '#/components/schemas/ApiWithdrawal'
+ApiClaimStateResponse:
+type: object
+required:
+- total_count
+- items
+properties:
+total_count:
+type: integer
+items:
+type: array
+items:
+$ref: '#/components/schemas/ApiClaimState'
+ApiTonProof:
+type: object
+required:
+- timestamp
+- domain_len
+- domain_val
+- payload
+- signature
+properties:
+timestamp:
+type: integer
+format: int64
+description: Valid till, in seconds
+domain_len:
+type: integer
+format: int64
+domain_val:
+type: string
+payload:
+type: string
+signature:
+type: string
+ApiProofValidationRequest:
+type: object
+required:
+- public_key
+- wallet_state_init
+- proof
+properties:
+public_key:
+type: string
+wallet_state_init:
+type: string
+format: base64
+description: Base64-encoded initial state. Must be retrieved from ton-connect.
+proof:
+$ref: '#/components/schemas/ApiTonProof'
+ApiJson:
+type: object
+additionalProperties: { }
+ApiContentReference:
+type: object
+required:
+- ref_name
+- ref_url
+properties:
+ref_name:
+type: string
+ref_url:
+type: string
+ApiCashbackLimitCreateRequest:
+type: object
+required:
+- interval_duration_seconds
+- max_distribute_at_interval
+properties:
+interval_duration_seconds:
+type: integer
+format: int64
+max_distribute_at_interval:
+type: number
+ApiDexSwapConditionType:
+type: string
+enum:
+- unique
+- listed
+- partner_address
+- tokens
+- tokens-pair
+- tokens-exact
+- users-whitelist
+- swap-tx-min-amount
+- blacklist-pair
+- blacklist-tokens
+ApiDexSwapCondition:
+type: object
+required:
+- type
+properties:
+type:
+$ref: '#/components/schemas/ApiDexSwapConditionType'
+args:
+description: Arguments required to construct condition type
+type: array
+items:
+type: string
+ApiCashbackCreateRequest:
+type: object
+required:
+- title
+- description
+- distributor
+- reward_token
+- conditions
+- distribute
+- distributed
+- start_time_seconds
+- end_time_seconds
+- reward_denominator
+- limits
+- image_url
+- references
+properties:
+title:
+type: string
+description:
+type: string
+distributor:
+type: string
+description: Where rewards stored
+example: EQCZ_pV6EJNSr6XpvPaa-IVkT6ImqkiPftRMOICJP1B_75wZ
+reward_token:
+type: string
+example: EQCZ_pV6EJNSr6XpvPaa-IVkT6ImqkiPftRMOICJP1B_75wZ
+conditions:
+type: array
+items:
+$ref: '#/components/schemas/ApiDexSwapCondition'
+distribute:
+type: number
+description: How many tokens will be distributed to users
+distributed:
+type: number
+description: How many tokens already distributed to users
+start_time_seconds:
+type: integer
+format: int64
+description: Begin cashback promo in unix seconds
+end_time_seconds:
+type: integer
+format: int64
+description: End cashback promo in unix seconds
+reward_denominator:
+type: number
+limits:
+type: array
+items:
+$ref: '#/components/schemas/ApiCashbackLimitCreateRequest'
+image_url:
+type: string
+references:
+type: array
+items:
+$ref: '#/components/schemas/ApiContentReference'
+ApiCashbackLimitUpdateRequest:
+type: object
+properties:
+limit_id:
+type: integer
+format: int64
+interval_duration_seconds:
+type: integer
+format: int64
+max_distribute_at_interval:
+type: number
+ApiCashbackUpdateRequest:
+type: object
+properties:
+title:
+type: string
+description:
+type: string
+distributor:
+type: string
+description: Where rewards stored
+example: EQCZ_pV6EJNSr6XpvPaa-IVkT6ImqkiPftRMOICJP1B_75wZ
+reward_token:
+type: string
+example: EQCZ_pV6EJNSr6XpvPaa-IVkT6ImqkiPftRMOICJP1B_75wZ
+conditions:
+type: array
+items:
+$ref: '#/components/schemas/ApiDexSwapCondition'
+distribute:
+type: number
+description: How many tokens will be distributed to users
+distributed:
+type: number
+description: How many tokens already distributed to users
+start_time_seconds:
+type: integer
+format: int64
+description: Begin cashback promo in unix seconds
+end_time_seconds:
+type: integer
+format: int64
+description: End cashback promo in unix seconds
+reward_denominator:
+type: number
+limits:
+type: array
+items:
+$ref: '#/components/schemas/ApiCashbackLimitUpdateRequest'
+image_url:
+type: string
+references:
+type: array
+items:
+$ref: '#/components/schemas/ApiContentReference'
+ApiCashbackLimit:
+type: object
+required:
+- limit_id
+- interval_duration_seconds
+- max_distribute_at_interval
+properties:
+limit_id:
+type: integer
+format: int64
+interval_duration_seconds:
+type: integer
+format: int64
+max_distribute_at_interval:
+type: number
+ApiCashbackInfo:
+type: object
+required:
+- id
+- title
+- description
+- distributor
+- reward_token
+- conditions
+- distribute
+- distributed
+- start_time_seconds
+- end_time_seconds
+- reward_denominator
+- is_active
+- limits
+- image_url
+- references
+properties:
+id:
+type: integer
+format: int64
+title:
+type: string
+description:
+type: string
+distributor:
+type: string
+description: Where rewards stored
+example: EQCZ_pV6EJNSr6XpvPaa-IVkT6ImqkiPftRMOICJP1B_75wZ
+reward_token:
+type: string
+example: EQCZ_pV6EJNSr6XpvPaa-IVkT6ImqkiPftRMOICJP1B_75wZ
+conditions:
+type: array
+items:
+$ref: '#/components/schemas/ApiDexSwapCondition'
+distribute:
+type: number
+description: How many tokens will be distributed to users
+distributed:
+type: number
+description: How many tokens already distributed to users
+start_time_seconds:
+type: integer
+format: int64
+description: Begin cashback promo in unix seconds
+end_time_seconds:
+type: integer
+format: int64
+description: End cashback promo in unix seconds
+reward_denominator:
+type: number
+is_active:
+type: boolean
+description: Can this cashback program accrue tokens to participants
+limits:
+type: array
+items:
+$ref: '#/components/schemas/ApiCashbackLimit'
+image_url:
+type: string
+references:
+type: array
+items:
+$ref: '#/components/schemas/ApiContentReference'
+ApiCashbackInfoResponse:
+type: object
+required:
+- infos
+- count
+properties:
+count:
+type: integer
+description: Total amount of similar cashback promos
+infos:
+type: array
+items:
+$ref: '#/components/schemas/ApiCashbackInfo'
+ApiUserCashbackInfo:
+type: object
+required:
+- cashback_id
+- earned_usd
+properties:
+cashback_id:
+type: integer
+format: int64
+earned_usd:
+type: number
+format: double
+ApiUserCashbackInfoTotal:
+type: object
+required:
+- cashback_count
+- total_earned_usd
+properties:
+cashback_count:
+type: integer
+total_earned_usd:
+type: number
+format: double
+additionalProperties: { }
+ApiContestReward:
+type: object
+required:
+- reward
+properties:
+reward:
+type: string
+place:
+type: integer
+format: int32
+place_from:
+type: integer
+format: int32
+place_to:
+type: integer
+format: int32
+ApiContestInfo:
+type: object
+required:
+- title
+- description
+- references
+- conditions
+- rewards
+- start_time_unix
+- end_time_unix
+- image_url
+- total_reward
+- hidden
+properties:
+title:
+type: string
+description:
+type: string
+references:
+type: array
+items:
+$ref: '#/components/schemas/ApiContentReference'
+conditions:
+type: array
+items:
+$ref: '#/components/schemas/ApiDexSwapCondition'
+rewards:
+type: array
+items:
+$ref: '#/components/schemas/ApiContestReward'
+start_time_unix:
+type: integer
+format: int64
+description: in seconds
+end_time_unix:
+type: integer
+format: int64
+description: in seconds
+image_url:
+type: string
+total_reward:
+type: string
+hidden:
+type: boolean
+ApiContestInfoWithID:
+type: object
+required:
+- id
+- info
+properties:
+id:
+type: integer
+format: int32
+info:
+$ref: '#/components/schemas/ApiContestInfo'
+ApiContestUserStats:
+type: object
+required:
+- address
+- position
+- volume_usd
+properties:
+address:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+position:
+type: integer
+format: int32
+volume_usd:
+type: number
+format: double
+ApiContestTopStats:
+type: array
+items:
+$ref: '#/components/schemas/ApiContestUserStats'
+ApiRawTransactionRecord:
+type: object
+required:
+- query_id
+- route_id
+- timestamp
+- hash
+- lt
+- user_wallet
+- token_from
+- token_to
+- amount_from
+- amount_from_usd
+- amount_to
+- amount_to_usd
+- dex
+- ref_fee_usd
+- failed
+- suspicious
+properties:
+query_id:
+type: integer
+format: int64
+route_id:
+type: integer
+format: int32
+timestamp:
+type: integer
+format: int64
+hash:
+type: string
+lt:
+type: integer
+format: int64
+user_wallet:
+type: string
+token_from:
+type: string
+token_to:
+type: string
+amount_from:
+type: number
+format: double
+amount_from_usd:
+type: number
+format: double
+amount_to:
+type: number
+format: double
+amount_to_usd:
+type: number
+format: double
+dex:
+type: string
+ref_fee_usd:
+type: number
+format: double
+failed:
+type: boolean
+suspicious:
+type: boolean
+ApiTxStats:
+type: object
+required:
+- count
+- volume
+- fees
+properties:
+count:
+type: integer
+format: int32
+volume:
+type: number
+format: double
+fees:
+type: number
+format: double
+ApiCreateStakeRequest:
+type: object
+required:
+- asset_address
+- amount_to_stake_raw
+- period_id
+properties:
+asset_address:
+type: string
+description: Token to be staked.
+example: EQDY6PMeMbQSz7dltNN4RRTIxyuBJX4dQESOy8cWR2tUgBxH
+amount_to_stake_raw:
+type: number
+period_id:
+type: integer
+format: int32
+description: Lock identifier.
+ApiExtendStakeRequest:
+type: object
+required:
+- period_id
+properties:
+period_id:
+type: integer
+format: int32
+description: Lock identifier.
+ApiStakingPositionPeriods:
+type: object
+required:
+- period_id
+- percentage
+- lock_duration
+properties:
+period_id:
+type: integer
+format: int32
+description: Period id, to be passed into protocol.
+percentage:
+type: integer
+format: int64
+description: How much additional points will be accrued.
+lock_duration:
+type: integer
+format: int64
+description: How much wait till position unlock.
+ApiStakingTokenInfo:
+type: object
+required:
+- token_address
+- asset_raw
+- asset_usd
+properties:
+token_address:
+type: string
+description: Reward token address.
+example: EQDY6PMeMbQSz7dltNN4RRTIxyuBJX4dQESOy8cWR2tUgBxH
+asset_usd:
+type: number
+format: double
+asset_raw:
+type: number
+ApiStakingTokenInfoLock:
+type: object
+required:
+- token
+- normalizer
+- price_per_token_usd
+properties:
+token:
+description: Token to be staked for rewards.
+$ref: '#/components/schemas/ApiToken'
+normalizer:
+type: number
+price_per_token_usd:
+type: number
+format: double
+ApiStakingPositionInfo:
+type: object
+required:
+- id
+- locked_asset_address
+- locked_asset_amount_raw
+- locked_ces_native
+- locked_ces_usd
+- start_lock_seconds_utc
+- end_lock_seconds_utc
+- points_amount
+- period_id
+- available_periods # how can extend stake
+- earned_rewards # per notify reward
+properties:
+id:
+type: integer
+format: int64
+locked_asset_address:
+type: string
+description: Staked token
+example: EQDY6PMeMbQSz7dltNN4RRTIxyuBJX4dQESOy8cWR2tUgBxH
+locked_asset_amount_raw:
+description: Staked token amount in raw
+type: number
+locked_ces_native:
+description: Staked token corresponded CES volume
+type: number
+locked_ces_usd:
+type: number
+format: double
+start_lock_seconds_utc:
+type: integer
+format: int64
+end_lock_seconds_utc:
+type: integer
+format: int64
+points_amount:
+type: number
+period_id:
+type: integer
+format: int32
+available_periods:
+type: array
+items:
+$ref: '#/components/schemas/ApiStakingPositionPeriods'
+earned_rewards:
+type: array
+items:
+$ref: '#/components/schemas/ApiStakingTokenInfo'
+ApiStakingRewardsTokenInfo:
+type: object
+required:
+- token_address
+- end_distribution_unix
+- reward_rate
+properties:
+token_address:
+type: string
+description: Token address.
+example: EQDY6PMeMbQSz7dltNN4RRTIxyuBJX4dQESOy8cWR2tUgBxH
+end_distribution_unix:
+type: integer
+format: int64
+description: Timestamp in unix seconds
+reward_rate:
+type: number
+ApiStakingGlobalInfo:
+type: object
+required:
+- total_points
+- apr
+- total_locked_ces_native
+- locked_tokens
+- distributed_rewards
+- actual_rewards
+- periods
+properties:
+total_points:
+type: number
+apr:
+type: number
+format: double
+total_locked_ces_native:
+type: number
+locked_tokens:
+type: array
+items:
+$ref: '#/components/schemas/ApiStakingTokenInfoLock'
+distributed_rewards:
+type: array
+items:
+$ref: '#/components/schemas/ApiStakingTokenInfo'
+actual_rewards:
+type: array
+items:
+$ref: '#/components/schemas/ApiStakingRewardsTokenInfo'
+periods:
+type: array
+items:
+$ref: '#/components/schemas/ApiStakingPositionPeriods'
+ApiStakingUserInfo:
+type: object
+required:
+- total_points
+- locked_tokens
+- paid_rewards
+- positions
+properties:
+total_points:
+type: number
+locked_tokens:
+type: array
+items:
+$ref: '#/components/schemas/ApiStakingTokenInfo'
+paid_rewards:
+type: array
+items:
+$ref: '#/components/schemas/ApiStakingTokenInfo'
+positions:
+type: array
+items:
+$ref: '#/components/schemas/ApiStakingPositionInfo'
+ApiUserStakeTokenInfo:
+type: object
+required:
+- asset_address
+- asset_amount_raw
+- asset_amount_usd
+properties:
+asset_address:
+type: string
+description: Token address.
+example: EQDY6PMeMbQSz7dltNN4RRTIxyuBJX4dQESOy8cWR2tUgBxH
+asset_amount_raw:
+type: number
+asset_amount_usd:
+type: number
+format: double
+ApiStrategyOrderType:
+type: string
+enum:
+- limit
+- dca
+- vca
+ApiStrategyOrderStatus:
+type: string
+enum:
+- active
+- requested_cancellation
+- cancelled_by_user
+- cancelled_by_system
+- executed
+- max_retries_exceeded
+ApiStrategyOrder:
+type: object
+required:
+- id
+- type
+- wallet
+- status
+- creation_timestamp
+- token_from
+- token_to
+- initial_input_amount
+- current_input_amount
+- min_output_amount
+- current_output_amount
+- max_suborders
+- suborders_executed
+- max_invocations
+- invocations_executed
+- slippage
+- max_path_length
+- active_transactions
+properties:
+id:
+type: integer
+format: int32
+type:
+$ref: '#/components/schemas/ApiStrategyOrderType'
+wallet:
+type: string
+example: UQCNTO0Nh0Z7QNyRW1BLWfk08f2dAOw4izrx9sO6OUPg4DoV
+status:
+$ref: '#/components/schemas/ApiStrategyOrderStatus'
+creation_timestamp:
+type: integer
+format: int64
+description: Unix time in seconds
+token_from:
+$ref: '#/components/schemas/ApiToken'
+token_to:
+$ref: '#/components/schemas/ApiToken'
+initial_input_amount:
+type: number
+current_input_amount:
+type: number
+min_output_amount:
+type: number
+current_output_amount:
+type: number
+max_suborders:
+type: integer
+format: int32
+suborders_executed:
+type: integer
+format: int32
+max_invocations:
+type: integer
+format: int32
+description: Max amount of swaps to be potentially executed (including those that fail to reasons like slippage tolerance abortion)
+invocations_executed:
+type: integer
+format: int32
+description: Amount of swaps that had already been tried to be executed (including those that failed to reasons like slippage tolerance abortion)
+slippage:
+type: number
+format: double
+minimum: 0
+maximum: 1
+max_path_length:
+type: integer
+format: int32
+description: Max path length in tokens for every route that could potentially be executed within this order
+active_transactions:
+type: integer
+format: int32
+description: Amount of this order transactions that were sent, but their result is still unknown
+close_timestamp:
+type: integer
+format: int64
+description: Unix time in seconds
+ApiStrategyOrderCreationRequest:
+type: object
+required:
+- type
+- token_from
+- token_to
+- input_amount
+- min_output_amount
+- max_suborders
+- max_invocations
+- slippage
+properties:
+type:
+$ref: '#/components/schemas/ApiStrategyOrderType'
+token_from:
+$ref: '#/components/schemas/ApiTokenAddress'
+token_to:
+$ref: '#/components/schemas/ApiTokenAddress'
+input_amount:
+type: number
+minimum: 0
+exclusiveMinimum: true
+min_output_amount:
+type: number
+minimum: 0
+exclusiveMinimum: true
+max_suborders:
+type: integer
+format: int32
+minimum: 1
+maximum: 255
+max_invocations:
+type: integer
+format: int32
+description: Max amount of swaps to be potentially executed (including those that fail to reasons like slippage tolerance abortion)
+minimum: 1
+maximum: 255
+slippage:
+type: number
+format: double
+minimum: 0
+maximum: 1
