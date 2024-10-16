@@ -1,97 +1,157 @@
 ---
-title: 'Development'
-description: 'Learn how to preview changes locally'
+title: 'UI Widget'
+description: 'Integrate widget of swap.coffee  in a couple of minutes.'
 ---
 
-<Info>
-  **Prerequisite**: Please install Node.js (version 19 or higher) before proceeding.
-</Info>
 
-Step 1. Install Mintlify on your OS:
+# Installation
 
-<CodeGroup>
-
-```bash npm
-npm i -g mintlify
-```
-
-```bash yarn
-yarn global add mintlify
-```
-
-</CodeGroup>
-
-Step 2. Go to the docs are located (where you can find `mint.json`) and run the following command:
+The Swap Widget can be easily integrated into any web framework (React, Vue, Angular, etc.). To install the SDK for JavaScript/TypeScript, use the following npm package:
 
 ```bash
-mintlify dev
+npm install @swap-coffee/ui-sdk
 ```
 
-The documentation website is now available at `http://localhost:3000`.
+## Concepts
 
-### Custom Ports
+Basic concepts you need to know to work with our Swap Widget:
 
-Mintlify uses port 3000 by default. You can use the `--port` flag to customize the port Mintlify runs on. For example, use this command to run in port 3333:
+- **TonConnectUI**: A library that simplifies the integration of the TON blockchain into your application. It provides a user-friendly interface for connecting and interacting with TON-compatible wallets, allowing users to perform transactions. With **TonConnect**, you can securely handle wallet connections within the Swap Widget, enhancing the user experience for token swaps.
 
-```bash
-mintlify dev --port 3333
+  Learn more about TonConnect and its features [here](https://docs.ton.org).
+
+## How the swap.coffee widget works
+
+1. **Connect Your Wallet**:
+   - Start by connecting your wallet through **TonConnect**. This step allows the widget to interact with your wallet and manage your tokens securely.
+
+2. **Configure the Widget**:
+   - **Basic Settings**: Customize essential parameters such as slippage tolerance.
+   - **Advanced Settings**: Control settings like price impact, pools volatility, parallel transactions, and the number of intermediate tokens.
+
+3. **Select Tokens**:
+   - Choose the token you wish to exchange and the token you want to receive. This selection initiates the swap process.
+
+4. **Routing and Optimization**:
+   - The widget communicates with the **swap.coffee** API to retrieve the best routing scheme for your token swap, optimizing for the best possible rate and efficiency.
+
+5. **Confirm and Execute Transaction**:
+   - Review the transaction conditions and routing details. Once confirmed, the widget processes the transaction and displays the final result.
+
+## Configure Swap Widget
+
+To integrate the Swap Widget into your application, follow these steps using `@swap-coffee/ui-sdk` and `@tonconnect/ui`.
+
+### 1. Create a Configuration File
+
+Create a configuration file (`config.js`) to manage your settings for **TonConnect** and the **Swap Widget**.
+
+```javascript
+import { THEME } from "@tonconnect/ui";
+
+// TonConnect manifest URL
+const manifestUrl = "https://swap.coffee/tonconnect-manifest.json";
+
+// TonConnect configuration
+export const tonConnectConfig = {
+    manifestUrl: manifestUrl,
+    uiPreferences: {
+        theme: THEME.DARK,
+    },
+};
+
+// Swap Widget configuration
+export const swapWidgetConfig = {
+    theme: 'dark',
+    locale: 'en',
+    tonConnectManifest: {
+        url: manifestUrl,
+    },
+};
 ```
 
-You will see an error like this if you try to run Mintlify in a port that's already taken:
+### 2. Available Themes and Languages
 
-```md
-Error: listen EADDRINUSE: address already in use :::3000
+The Swap Widget supports the following themes:
+
+- `light`
+- `dark`
+- `coffee`
+
+To set the theme:
+
+```javascript
+export const swapWidgetConfig = {
+    theme: 'dark',
+    // other configurations...
+};
 ```
 
-## Mintlify Versions
+Supported languages include:
 
-Each CLI is linked to a specific version of Mintlify. Please update the CLI if your local website looks different than production.
+- `zh` (Chinese)
+- `ua` (Ukrainian)
+- `ru` (Russian)
+- `en` (English)
+- `es` (Spanish)
+- `fr` (French)
+- `fa` (Persian)
 
-<CodeGroup>
+To set the locale:
 
-```bash npm
-npm i -g mintlify@latest
+```javascript
+export const swapWidgetConfig = {
+    locale: 'en',
+    // other configurations...
+};
 ```
 
-```bash yarn
-yarn global upgrade mintlify
+## Introduction to the createSwapWidget
+
+The `createSwapWidget` function initializes and integrates the Swap Widget into your application.
+
+### Importing createSwapWidget
+
+```javascript
+import { createSwapWidget } from '@swap-coffee/ui-sdk';
 ```
 
-</CodeGroup>
+### Usage Example in Vue 3
 
-## Deployment
+```javascript
+<template>
+  <div>
+    <h1>Swap Widget Example</h1>
+    <div id="swap-widget-component"></div>
+  </div>
+</template>
 
-<Tip>
-  Unlimited editors available under the [Pro
-  Plan](https://mintlify.com/pricing) and above.
-</Tip>
+<script setup>
+import { ref, onMounted } from 'vue';
+import { createSwapWidget } from '@swap-coffee/ui-sdk';
+import { TonConnectUI } from '@tonconnect/ui';
+import { tonConnectConfig, swapWidgetConfig } from './config';
 
-You should see the following if the deploy successfully went through:
+const tonConnectUiInstance = ref(null);
 
-<Frame>
-  <img src="/images/checks-passed.png" style={{ borderRadius: '0.5rem' }} />
-</Frame>
+const initializeSwapWidget = () => {
+    createSwapWidget('#swap-widget-component', {
+        ...swapWidgetConfig,
+        tonConnectUi: tonConnectUiInstance.value,
+    });
+};
 
-## Troubleshooting
+onMounted(() => {
+    tonConnectUiInstance.value = new TonConnectUI(tonConnectConfig);
+    initializeSwapWidget();
+});
+</script>
 
-Here's how to solve some common problems when working with the CLI.
-
-<AccordionGroup>
-  <Accordion title="Mintlify is not loading">
-    Update to Node v18. Run `mintlify install` and try again.
-  </Accordion>
-  <Accordion title="No such file or directory on Windows">
-Go to the `C:/Users/Username/.mintlify/` directory and remove the `mint`
-folder. Then Open the Git Bash in this location and run `git clone
-https://github.com/mintlify/mint.git`.
-
-Repeat step 3.
-
-  </Accordion>
-  <Accordion title="Getting an unknown error">
-    Try navigating to the root of your device and delete the ~/.mintlify folder.
-    Then run `mintlify dev` again.
-  </Accordion>
-</AccordionGroup>
-
-Curious about what changed in a CLI version? [Check out the CLI changelog.](/changelog/command-line)
+<style scoped>
+#swap-widget-component {
+  margin: 0 auto;
+  width: 100%;
+  height: 500px;
+}
+</style>
+```

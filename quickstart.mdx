@@ -1,86 +1,166 @@
 ---
-title: 'Quickstart'
-description: 'Start building awesome documentation in under 5 minutes'
+title: 'Swap API & SDK'
+description: 'Build apps on TON Blockchais like a pro.'
 ---
 
-## Setup your development
+## Installation
 
-Learn how to update your docs locally and deploy them to the public.
+For JavaScript/TypeScript please use the SDK as stated below:
 
-### Edit and preview
+```bash
+npm install @swap-coffee/sdk
+```
 
-<AccordionGroup>
-  <Accordion icon="github" title="Clone your docs locally">
-    During the onboarding process, we created a repository on your Github with
-    your docs content. You can find this repository on our
-    [dashboard](https://dashboard.mintlify.com). To clone the repository
-    locally, follow these
-    [instructions](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
-    in your terminal.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Preview changes">
-    Previewing helps you make sure your changes look as intended. We built a
-    command line interface to render these changes locally. 1. Install the
-    [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the
-    documentation changes locally with this command: ``` npm i -g mintlify ```
-    2. Run the following command at the root of your documentation (where
-    `mint.json` is): ``` mintlify dev ```
-  </Accordion>
-</AccordionGroup>
+For any other languages, you can integrate with our Rest API.
 
-### Deploy your changes
+## Concepts
 
-<AccordionGroup>
+Here are some basic concepts you need to know to work with our SDK:
 
-<Accordion icon="message-bot" title="Install our Github app">
-  Our Github app automatically deploys your changes to your docs site, so you
-  don't need to manage deployments yourself. You can find the link to install on
-  your [dashboard](https://dashboard.mintlify.com). Once the bot has been
-  successfully installed, there should be a check mark next to the commit hash
-  of the repo.
-</Accordion>
-<Accordion icon="rocket" title="Push your changes">
-  [Commit and push your changes to
-  Git](https://docs.github.com/en/get-started/using-git/pushing-commits-to-a-remote-repository#about-git-push)
-  for your changes to update in your docs site. If you push and don't see that
-  the Github app successfully deployed your changes, you can also manually
-  update your docs through our [dashboard](https://dashboard.mintlify.com).
-</Accordion>
+- **Asset**: A token on a blockchain. It can be a native token (like TON on TON blockchain) or a jetton (like USDT on TON blockchain). Each asset has a unique address on the blockchain.
+- **Route**: A set of paths.
+- **Path**: A list of tokens (or liquidity pools) that can be swapped one to another.
+- **Price impact**: The change in the token's price when performing a swap, depending on the swap amount and the token's liquidity.
+- **Price slippage**: The change in token price over time. A transaction will fail if the slippage tolerance is exceeded.
+- **Transaction**: A set of messages sent to the blockchain, such as token transfers or contract calls.
 
-</AccordionGroup>
+## How the DEX aggregator works
 
-## Update your docs
+1. You provide the input token, output token, and the amount to swap.
+2. We build the optimal route, splitting the input token between several liquidity pools to reduce price impact.
+3. We build the transactions that will swap the tokens.
+4. You send the transactions to the blockchain.
+5. If slippage tolerance is exceeded, the transaction is reverted.
+6. You receive the output token in your wallet.
 
-Add content directly in your files with MDX syntax and React components. You can use any of our components, or even build your own.
+## Basic usage
 
-<CardGroup>
+Swapping assets using our SDK and TonConnect SDK:
 
-<Card title="Style Your Docs" icon="paintbrush" href="/settings/global">
-  Add flair to your docs with personalized branding.
-</Card>
+```typescript
+import {ApiTokenAddress, RoutingApi} from "@swap-coffee/sdk";
+import TonConnect, {WalletInfo, WalletInfoRemote} from "@tonconnect/sdk";
 
-<Card
-  title="Add API Endpoints"
-  icon="square-code"
-  href="/api-playground/configuration"
->
-  Implement your OpenAPI spec and enable API user interaction.
-</Card>
+const connector = await setupTonConnect()
+const routingApi = new RoutingApi()
 
-<Card
-  title="Integrate Analytics"
-  icon="chart-mixed"
-  href="/analytics/supported-integrations"
->
-  Draw insights from user interactions with your documentation.
-</Card>
+const assetIn: ApiTokenAddress = {
+    blockchain: "ton",
+    address: "native"
+}
+const assetOut: ApiTokenAddress = {
+    blockchain: "ton",
+    address: "EQCl0S4xvoeGeFGijTzicSA8j6GiiugmJW5zxQbZTUntre-1"
+}
 
-<Card
-  title="Host on a Custom Domain"
-  icon="browser"
-  href="/settings/custom-domain/subdomain"
->
-  Keep your docs on your own website's subdomain.
-</Card>
+const input_amount = 5 // 5 TON
 
-</CardGroup>
+const route = await routingApi.buildRoute({
+    input_token: assetIn,
+    output_token: assetOut,
+    input_amount: input_amount,
+})
+
+const transactions = await routingApi.buildTransactionsV2({
+    sender_address: connector.account?.address!!,
+    slippage: 0.1,
+    paths: route.data.paths,
+})
+
+let messages = []
+
+for (const transaction of transactions.data.transactions) {
+    messages.push({
+        address: transaction.address,
+        amount: transaction.value,
+        payload: transaction.cell,
+    })
+}
+
+await connector.sendTransaction({
+    validUntil: Date.now() + 5 * 60 * 1000,
+    messages: messages,
+})
+```
+
+## Advanced usage
+
+Additional settings can be configured for more control over route building, such as:
+
+- **max_length**: Maximum path length in tokens (default: 3).
+- **max_splits**: Maximum number of splits (default: 4).
+- **pool_selector**: Controls which liquidity pools can be used.
+
+```typescript
+const route = await routingApi.buildRoute({
+    input_token: assetIn,
+    output_token: assetOut,
+    input_amount: input_amount,
+    max_length: 4,
+    max_splits: 2,
+    pool_selector: {
+        max_volatility: 2.2,
+    },
+});
+```
+
+## ExactOut swaps
+
+Specify `output_amount` for exact output swaps:
+
+```typescript
+const route = await routingApi.buildRoute({
+    input_token: assetIn,
+    output_token: assetOut,
+    output_amount: 200,
+});
+```
+
+## Checking transaction results
+
+Use the `route_id` to check the status of route transactions on the blockchain.
+
+```typescript
+import {ApiTokenAddress, RoutingApi, waitForTransactionResults} from "@swap-coffee/sdk";
+
+const connector = await setupTonConnect();
+const routingApi = new RoutingApi();
+
+const assetIn: ApiTokenAddress = {
+  blockchain: 'ton',
+  address: 'native',
+};
+const assetOut: ApiTokenAddress = {
+  blockchain: 'ton',
+  address: 'EQCl0S4xvoeGeFGijTzicSA8j6GiiugmJW5zxQbZTUntre-1',
+};
+
+const route = await routingApi.buildRoute({
+  input_token: assetIn,
+  output_token: assetOut,
+  input_amount: 5,
+});
+
+const transactions = await routingApi.buildTransactionsV2({
+  sender_address: connector.account?.address!!,
+  slippage: 0.1,
+  paths: route.data.paths,
+});
+
+await connector.sendTransaction({
+  validUntil: Date.now() + 5 * 60 * 1000,
+  messages: messages,
+});
+
+const results = await waitForTransactionResults(transactions.data.route_id, routingApi);
+
+for (const result of results) {
+  // handle result for each route's paths
+}
+```
+
+## API Limitations
+
+- `input_token` and `output_token` must be different.
+- The average load should not exceed 1 request per second per IP.
+- All commission from transactions goes to swap.coffee.
