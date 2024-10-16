@@ -32,11 +32,7 @@
     },
     {
       "name": "Widget API",
-      "url": "widget-api"
-    },
-    {
-      "name": "SSE Bridge",
-      "url": "sse-bridge"
+      "url": "widget-api/info.mdx"
     }
   ],
   "anchors": [
