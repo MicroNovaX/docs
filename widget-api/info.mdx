@@ -1,0 +1,152 @@
+
+# Installation
+
+The Swap Widget can be easily integrated into any web framework (React, Vue, Angular, etc.). To install the SDK for JavaScript/TypeScript, use the following npm package:
+
+```bash
+npm install @swap-coffee/ui-sdk
+```
+
+## Concepts
+
+Basic concepts you need to know to work with our Swap Widget:
+
+- **TonConnectUI**: A library that simplifies the integration of the TON blockchain into your application. It provides a user-friendly interface for connecting and interacting with TON-compatible wallets, allowing users to perform transactions. With **TonConnect**, you can securely handle wallet connections within the Swap Widget, enhancing the user experience for token swaps.
+
+  Learn more about TonConnect and its features [here](https://docs.ton.org).
+
+## How the swap.coffee widget works
+
+1. **Connect Your Wallet**:
+   - Start by connecting your wallet through **TonConnect**. This step allows the widget to interact with your wallet and manage your tokens securely.
+
+2. **Configure the Widget**:
+   - **Basic Settings**: Customize essential parameters such as slippage tolerance.
+   - **Advanced Settings**: Control settings like price impact, pools volatility, parallel transactions, and the number of intermediate tokens.
+
+3. **Select Tokens**:
+   - Choose the token you wish to exchange and the token you want to receive. This selection initiates the swap process.
+
+4. **Routing and Optimization**:
+   - The widget communicates with the **swap.coffee** API to retrieve the best routing scheme for your token swap, optimizing for the best possible rate and efficiency.
+
+5. **Confirm and Execute Transaction**:
+   - Review the transaction conditions and routing details. Once confirmed, the widget processes the transaction and displays the final result.
+
+## Configure Swap Widget
+
+To integrate the Swap Widget into your application, follow these steps using `@swap-coffee/ui-sdk` and `@tonconnect/ui`.
+
+### 1. Create a Configuration File
+
+Create a configuration file (`config.js`) to manage your settings for **TonConnect** and the **Swap Widget**.
+
+```javascript
+import { THEME } from "@tonconnect/ui";
+
+// TonConnect manifest URL
+const manifestUrl = "https://swap.coffee/tonconnect-manifest.json";
+
+// TonConnect configuration
+export const tonConnectConfig = {
+    manifestUrl: manifestUrl,
+    uiPreferences: {
+        theme: THEME.DARK,
+    },
+};
+
+// Swap Widget configuration
+export const swapWidgetConfig = {
+    theme: 'dark',
+    locale: 'en',
+    tonConnectManifest: {
+        url: manifestUrl,
+    },
+};
+```
+
+### 2. Available Themes and Languages
+
+The Swap Widget supports the following themes:
+
+- `light`
+- `dark`
+- `coffee`
+
+To set the theme:
+
+```javascript
+export const swapWidgetConfig = {
+    theme: 'dark',
+    // other configurations...
+};
+```
+
+Supported languages include:
+
+- `zh` (Chinese)
+- `ua` (Ukrainian)
+- `ru` (Russian)
+- `en` (English)
+- `es` (Spanish)
+- `fr` (French)
+- `fa` (Persian)
+
+To set the locale:
+
+```javascript
+export const swapWidgetConfig = {
+    locale: 'en',
+    // other configurations...
+};
+```
+
+## Introduction to the createSwapWidget
+
+The `createSwapWidget` function initializes and integrates the Swap Widget into your application.
+
+### Importing createSwapWidget
+
+```javascript
+import { createSwapWidget } from '@swap-coffee/ui-sdk';
+```
+
+### Usage Example in Vue 3
+
+```vue
+<template>
+  <div>
+    <h1>Swap Widget Example</h1>
+    <div id="swap-widget-component"></div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { createSwapWidget } from '@swap-coffee/ui-sdk';
+import { TonConnectUI } from '@tonconnect/ui';
+import { tonConnectConfig, swapWidgetConfig } from './config';
+
+const tonConnectUiInstance = ref(null);
+
+const initializeSwapWidget = () => {
+    createSwapWidget('#swap-widget-component', {
+        ...swapWidgetConfig,
+        tonConnectUi: tonConnectUiInstance.value,
+    });
+};
+
+onMounted(() => {
+    tonConnectUiInstance.value = new TonConnectUI(tonConnectConfig);
+    initializeSwapWidget();
+});
+</script>
+
+<style scoped>
+#swap-widget-component {
+  margin: 0 auto;
+  width: 100%;
+  height: 500px;
+}
+</style>
+```
