@@ -2,10 +2,10 @@
   "$schema": "https://mintlify.com/schema.json",
   "name": "swap.coffee",
   "logo": {
-    "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg"
+    "dark": "/logo/swap.svg",
+    "light": "/logo/swap.svg"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/logo/swap.svg",
   "colors": {
     "primary": "#EA7A3B",
     "light": "#EA7A3B",
@@ -16,18 +16,10 @@
     }
   },
   "topbarLinks": [
-    {
-      "name": "Administrator",
-      "url": "mailto:hi@mintlify.com"
-    },
-    {
-      "name": "DEV Channel",
-      "url": "mailto:hi@mintlify.com"
-    }
   ],
   "topbarCtaButton": {
     "name": "GitHub",
-    "url": "https://dashboard.mintlify.com"
+    "url": "https://github.com/swapcoffee"
   },
   "tabs": [
     {
@@ -46,23 +38,22 @@
       "name": "SSE Bridge",
       "url": "sse-bridge"
     }
-
   ],
   "anchors": [
     {
-      "name": "Documentation",
+      "name": "App",
       "icon": "book-open-cover",
-      "url": "https://mintlify.com/docs"
+      "url": "https://swap.coffee"
     },
     {
-      "name": "DEV Community",
+      "name": "Developer Chat",
       "icon": "slack",
-      "url": "https://mintlify.com/community"
+      "url": "https://t.me/swapcoffee_dev_chat"
     },
     {
-      "name": "Blog",
+      "name": "Developer Channel",
       "icon": "newspaper",
-      "url": "https://mintlify.com/blog"
+      "url": "https://t.me/swapcoffee_dev"
     }
   ],
   "navigation": [
