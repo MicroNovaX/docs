@@ -1,15 +1,15 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Starter Kit",
+  "name": "swap.coffee",
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
   },
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#0D9373",
+    "primary": "#EA7A3B",
+    "light": "#EA7A3B",
+    "dark": "#EA7A3B",
     "anchors": {
       "from": "#0D9373",
       "to": "#07C983"
@@ -17,19 +17,36 @@
   },
   "topbarLinks": [
     {
-      "name": "Support",
+      "name": "Administrator",
+      "url": "mailto:hi@mintlify.com"
+    },
+    {
+      "name": "DEV Channel",
       "url": "mailto:hi@mintlify.com"
     }
   ],
   "topbarCtaButton": {
-    "name": "Dashboard",
+    "name": "GitHub",
     "url": "https://dashboard.mintlify.com"
   },
   "tabs": [
     {
-      "name": "API Reference",
-      "url": "api-reference"
+      "name": "Swap API",
+      "url": "swap-api"
+    },
+    {
+      "name": "Tokens API",
+      "url": "tokens-api"
+    },
+    {
+      "name": "Widget API",
+      "url": "widget-api"
+    },
+    {
+      "name": "SSE Bridge",
+      "url": "sse-bridge"
     }
+
   ],
   "anchors": [
     {
@@ -38,7 +55,7 @@
       "url": "https://mintlify.com/docs"
     },
     {
-      "name": "Community",
+      "name": "DEV Community",
       "icon": "slack",
       "url": "https://mintlify.com/community"
     },
